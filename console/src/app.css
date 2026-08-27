@@ -1,0 +1,81 @@
+/* Signal Box design tokens — Soot / Walnut / Verdigris / Rust / Parchment,
+   Emerald accent. No purple, indigo, or cyan anywhere (standing rule). */
+:root {
+	--soot: #17150f;
+	--soot-2: #221f17;
+	--soot-3: #2e2a20;
+	--walnut: #4a3327;
+	--verdigris: #3e7a66;
+	--rust: #b04a2a;
+	--parchment: #f2ebdd;
+	--parchment-dim: #cfc7b4;
+	--emerald: #2aa06a;
+	--font-display: 'Fraunces', georgia, serif;
+	--font-ui: 'Hanken Grotesk', system-ui, sans-serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--soot);
+	color: var(--parchment);
+	font-family: var(--font-ui);
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+a {
+	color: var(--emerald);
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+
+h1,
+h2 {
+	font-family: var(--font-display);
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
+code,
+.mono {
+	font-family: var(--font-mono);
+	font-size: 13px;
+}
+
+.badge {
+	display: inline-block;
+	padding: 1px 8px;
+	border-radius: 3px;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+.badge.queued {
+	background: var(--soot-3);
+	color: var(--parchment-dim);
+}
+.badge.running {
+	background: var(--verdigris);
+	color: var(--parchment);
+}
+.badge.succeeded {
+	background: var(--emerald);
+	color: var(--soot);
+}
+.badge.failed,
+.badge.budget_stopped {
+	background: var(--rust);
+	color: var(--parchment);
+}
+.badge.killed {
+	background: var(--walnut);
+	color: var(--parchment);
+}

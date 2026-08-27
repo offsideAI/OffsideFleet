@@ -1,0 +1,53 @@
+# Dev stack for M1. Run from repo root:  docker compose -f infra/docker-compose.dev.yml up -d
+#
+# - postgres: control-plane DB (Postgres 16; pgvector arrives in M3)
+# - egress-proxy: the ONLY way out of the internal agent network.
+#   * :8888 forward proxy (allowlist)
+#   * :8889 model reverse-proxy (injects ANTHROPIC_API_KEY at egress —
+#     the key never enters agent containers)
+#
+# The Django API, the Procrastinate worker, and the runner-gateway run on the
+# host in dev (see justfile). Agent containers are spawned by the gateway onto
+# the internal network below.
+
+name: offsidefleet-dev
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: fleet
+      POSTGRES_PASSWORD: fleet
+      POSTGRES_DB: fleet
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fleet"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  egress-proxy:
+    build:
+      context: ../runner
+      dockerfile: egress_proxy/Dockerfile
+    container_name: fleet-egress-proxy
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY in your shell or .env}
+      FLEET_EGRESS_ALLOWLIST: "api.anthropic.com,host.docker.internal"
+    networks:
+      - default        # egress to the internet + host
+      - fleet_internal # reachable by agent containers
+    ports:
+      - "8888:8888" # forward proxy (handy for local probing)
+      - "8889:8889" # model reverse-proxy
+
+networks:
+  fleet_internal:
+    name: fleet_internal
+    internal: true # no default route: agent containers can ONLY reach the proxy
+
+volumes:
+  pgdata:

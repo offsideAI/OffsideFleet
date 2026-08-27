@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  control:
+    name: control (ruff · mypy strict · pytest @ postgres)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: fleet
+          POSTGRES_PASSWORD: fleet
+          POSTGRES_DB: fleet
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U fleet"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://fleet:fleet@localhost:5432/fleet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Sync deps
+        working-directory: control
+        run: uv sync --frozen || uv sync
+      - name: Ruff
+        working-directory: control
+        run: uv run ruff check .
+      - name: Mypy (strict)
+        working-directory: control
+        run: uv run mypy .
+      - name: Pytest (postgres — includes append-only enforcement)
+        working-directory: control
+        run: uv run pytest
+
+  runner:
+    name: runner (ruff · mypy strict · pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Sync deps
+        working-directory: runner
+        run: uv sync --frozen || uv sync
+      - name: Ruff
+        working-directory: runner
+        run: uv run ruff check .
+      - name: Mypy (strict)
+        working-directory: runner
+        run: uv run mypy .
+      - name: Pytest (unit)
+        working-directory: runner
+        run: uv run pytest -m "not docker"
+
+  sandbox:
+    name: sandbox-escape suite (docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Create internal agent network
+        run: docker network create --internal fleet_internal
+      - name: Sync deps
+        working-directory: runner
+        run: uv sync --frozen || uv sync
+      - name: Sandbox suite
+        working-directory: runner
+        run: uv run pytest -m docker
+
+  console:
+    name: console (prettier · eslint · svelte-check strict · vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: console/package-lock.json
+      - name: Install
+        working-directory: console
+        run: npm ci
+      - name: Lint
+        working-directory: console
+        run: npm run lint
+      - name: Typecheck
+        working-directory: console
+        run: npm run check
+      - name: Test
+        working-directory: console
+        run: npm run test
+
+  commits:
+    name: conventional commits
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: commitlint.config.mjs

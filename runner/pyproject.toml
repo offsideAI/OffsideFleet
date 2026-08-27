@@ -1,0 +1,45 @@
+[project]
+name = "offsidefleet-runner"
+version = "0.1.0"
+description = "OffsideFleet data plane: runner-gateway, egress proxy, agent loop"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "docker>=7.1",
+    "anthropic>=1.0",
+    "httpx2>=0.1",
+    "environs>=11.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["docker", "docker.*", "environs"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "-q"
+asyncio_mode = "auto"
+markers = [
+    "docker: requires a local Docker daemon (integration; run via `just test-docker`)",
+]
+
+[tool.uv]
+package = false

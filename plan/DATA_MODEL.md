@@ -93,7 +93,7 @@ Postgres 16 (DO managed) + pgvector. Single shared schema, multi-tenant. Convent
 | conversation_id | uuid FK NULL | chat-triggered runs |
 | state | enum(queued, running, succeeded, failed, killed, budget_stopped) | state machine enforced in model layer |
 | error | jsonb NULL | |
-| cost_cents_total | bigint | denormalized sum of steps |
+| cost_microusd_total | bigint | denormalized sum of steps (micro-USD: cents are too coarse for per-step LLM costs) |
 | token_usage | jsonb | per-provider in/out totals |
 | started_at, ended_at | timestamptz | runner p95 metrics derive from these |
 | replayable | bool | validator result (M6.S1) |
@@ -113,7 +113,7 @@ Postgres 16 (DO managed) + pgvector. Single shared schema, multi-tenant. Convent
 | rng_seed | bigint NULL | replay determinism |
 | clock_reads | jsonb | timestamps observed by the loop during the step |
 | tokens_in, tokens_out | int | model steps |
-| cost_cents | bigint | computed at write time from the price table version |
+| cost_microusd | bigint | computed at write time from the price table version (micro-USD) |
 | price_table_version | text | so historical cost is reproducible |
 | duration_ms | int | |
 **Replay-completeness:** the M6.S1 validator asserts the presence/shape of every field replay needs; CI-enforced on run-producing tests.
