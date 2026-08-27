@@ -1,0 +1,56 @@
+[project]
+name = "offsidefleet-control"
+version = "0.1.0"
+description = "OffsideFleet control plane (Django + DRF + Procrastinate)"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.1,<6",
+    "djangorestframework>=3.15",
+    "django-cors-headers>=4.4",
+    "procrastinate[psycopg]>=2.9",
+    "psycopg[binary]>=3.2",
+    "environs>=11.0",
+    "httpx2>=0.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-django>=4.9",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "django-stubs[compatible-mypy]>=5.1",
+    "djangorestframework-stubs>=3.15",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "TCH"]
+
+[tool.ruff.lint.per-file-ignores]
+"*/migrations/*" = ["E501"]
+
+[tool.mypy]
+strict = true
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+mypy_path = "."
+exclude = ["migrations"]
+
+[[tool.mypy.overrides]]
+module = ["environs", "procrastinate", "procrastinate.*"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "offsidefleet.settings"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "offsidefleet.settings"
+python_files = ["test_*.py"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.uv]
+package = false

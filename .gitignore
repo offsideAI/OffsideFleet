@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+console/.svelte-kit/
+console/build/
+
+# Env & local state
+.env
+.env.*
+!.env.example
+*.sqlite3
+db.sqlite3
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
